@@ -11,13 +11,13 @@ headers = {
 }
 
 
-def verify(claim, query):
+def verify(claim, query, is_context=False):
     context_dict = get_top_abstracts(query)
     payload = {
         "model": "meta-llama/llama-4-maverick:free",
         "messages": [
             {"role": "user", "content":
-                f"Explain if the following claim can be implied from the context implicitly or explicitly. context: {context_dict.values()}. claim: {claim}. answer in following format: only write: yes, no or partially if the claim is partially correct."}
+                f"Explain if the following claim can be implied from the context implicitly or explicitly. context: {query if is_context else context_dict.values()}. claim: {claim}. answer in following format: only write: yes, no or partially if the claim is partially correct."}
         ],
         "max_tokens": 100
     }
