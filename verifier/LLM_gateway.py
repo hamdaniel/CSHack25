@@ -14,6 +14,7 @@ headers = {
     "Content-Type": "application/json"
 }
 
+
 def text_to_score(t):
     if t == "yes":
         return 4
@@ -22,6 +23,7 @@ def text_to_score(t):
     elif t == "pn":
         return 2
     return 1
+
 
 def verify(claim, query, current_url, is_context=False):
     source, context_dict = get_top_abstracts(query)
@@ -47,9 +49,12 @@ def verify(claim, query, current_url, is_context=False):
 
     if response.status_code == 200:
         response_content = response.json()['choices'][0]['message']['content']
-        return {"title": current_url, "url": {source: {"connected_urls_list": [current_url], "score": text_to_score(response_content)}}}
+        return {"title": query,
+                "url": {source: {"connected_urls_list": [current_url], "score": text_to_score(response_content)},
+                        current_url: {"connected_urls_list": [source], "score": text_to_score(response_content)}}}
     else:
         print("Error:", response.status_code, response.text)
+
 
 
 verify("vaccines are good", "vaccines are good", "example.com")
