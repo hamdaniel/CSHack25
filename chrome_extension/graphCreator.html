@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Clickable Graph from Adjacency Matrix</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    svg {
+      border: 1px solid lightgray;
+    }
+    circle {
+      fill: steelblue;
+      cursor: pointer;
+    }
+    line {
+      stroke: #999;
+      stroke-width: 2px;
+    }
+    text {
+      font-size: 14px;
+      fill: black;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>Graph with Clickable Nodes</h2>
+  <svg width="600" height="400"></svg>
+
+  <script>
+    // Example adjacency matrix (undirected)
+    const adjacencyMatrix = [
+      [0, 1, 0, 0, 1],
+      [1, 0, 1, 0, 1],
+      [0, 1, 0, 1, 0],
+      [0, 0, 1, 0, 1],
+      [1, 1, 0, 1, 0],
+    ];
+
+    // Example URLs for each node (same order as matrix)
+    const urls = [
+      'https://www.google.com/search?q=translate&oq=tran&gs_lcrp=EgZjaHJvbWUqDQgAEAAYgwEYsQMYgAQyDQgAEAAYgwEYsQMYgAQyBggBEEUYOTINCAIQABiDARixAxiABDIHCAMQABiABDIKCAQQABixAxiABDIKCAUQABixAxiABDINCAYQABiDARixAxiABDINCAcQABiDARixAxiABDIKCAgQABixAxiABDINCAkQABiDARixAxiABNIBCTIxNjVqMGoxNagCCLACAfEFfEe6qZhLh0A&sourceid=chrome&ie=UTF-8',
+      'https://cheesefork.cf/?semester=202102',
+      'https://example.com/2',
+      'https://example.com/3',
+      'https://example.com/4',
+    ];
+
+    const size = adjacencyMatrix.length;
+
+    // Build nodes with ID and URL
+    const nodes = Array.from({ length: size }, (_, i) => ({
+      id: i,
+      url: urls[i]
+    }));
+
+    const links = [];
+    for (let i = 0; i < size; i++) {
+      for (let j = i + 1; j < size; j++) {
+        if (adjacencyMatrix[i][j]) {
+          links.push({ source: i, target: j });
+        }
+      }
+    }
+
+    const svg = d3.select("svg");
+    const width = +svg.attr("width");
+    const height = +svg.attr("height");
+
+    const simulation = d3.forceSimulation(nodes)
+      .force("link", d3.forceLink(links).distance(100).strength(1).id(d => d.id))
+      .force("charge", d3.forceManyBody().strength(-400))
+      .force("center", d3.forceCenter(width / 2, height / 2));
+
+    const link = svg.append("g")
+      .selectAll("line")
+      .data(links)
+      .enter().append("line");
+
+    const node = svg.append("g")
+      .selectAll("circle")
+      .data(nodes)
+      .enter().append("circle")
+      .attr("r", 15)
+      .on("click", (event, d) => {
+        window.open(d.url, '_blank');
+      })
+      .call(drag(simulation));
+
+    const label = svg.append("g")
+      .selectAll("text")
+      .data(nodes)
+      .enter().append("text")
+      .text(d => d.id)
+      .attr("text-anchor", "middle")
+      .attr("dy", 5);
+
+    simulation.on("tick", () => {
+      link
+        .attr("x1", d => d.source.x)
+        .attr("y1", d => d.source.y)
+        .attr("x2", d => d.target.x)
+        .attr("y2", d => d.target.y);
+
+      node
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y);
+
+      label
+        .attr("x", d => d.x)
+        .attr("y", d => d.y);
+    });
+
+    function drag(simulation) {
+      function dragstarted(event, d) {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+      }
+
+      function dragged(event, d) {
+        d.fx = event.x;
+        d.fy = event.y;
+      }
+
+      function dragended(event, d) {
+        if (!event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+      }
+
+      return d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended);
+    }
+  </script>
+</body>
+</html>
