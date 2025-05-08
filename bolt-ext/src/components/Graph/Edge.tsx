@@ -8,15 +8,13 @@ interface EdgeProps {
 const Edge: React.FC<EdgeProps> = ({ edge }) => {
   if (!edge.source || !edge.target) return null;
   
-  // Extract coordinates
   const sourceNode = edge.source as any;
   const targetNode = edge.target as any;
   
   if (!sourceNode.x || !targetNode.x) return null;
   
-  // Calculate edge properties
   const strokeWidth = edge.value ? Math.max(1, Math.min(edge.value, 10)) : 1;
-  const edgeColor = edge.color || '#999';
+  const edgeColor = '#999';
   
   return (
     <line

@@ -9,23 +9,22 @@ interface NodeProps {
 const Node: React.FC<NodeProps> = ({ node, handleDrag }) => {
   const nodeRef = useRef<SVGGElement>(null);
   
-  // Apply drag behavior
   useEffect(() => {
     if (nodeRef.current) {
       handleDrag(nodeRef, node);
     }
   }, [node, handleDrag]);
   
-  // Handle node click - open URL
   const handleNodeClick = () => {
     if (node.url) {
       window.open(node.url, '_blank');
     }
   };
   
-  // Calculate node properties
   const nodeRadius = node.size || 30;
   const nodeColor = node.color || '#999';
+  const gradientId = `gradient-${node.id.replace(/[^a-zA-Z0-9]/g, '-')}`;
+  const label = node.label.replace('.com', '');
   
   return (
     <g
@@ -35,32 +34,31 @@ const Node: React.FC<NodeProps> = ({ node, handleDrag }) => {
       onClick={handleNodeClick}
     >
       <defs>
-        <radialGradient id={`gradient-${node.id}`} cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-          <stop offset="0%" stopColor={`${nodeColor}dd`} />
-          <stop offset="100%" stopColor={`${nodeColor}aa`} />
+        <radialGradient id={gradientId} cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+          <stop offset="0%" stopColor="white" />
+          <stop offset="40%" stopColor="white" />
+          <stop offset="80%" stopColor={nodeColor} />
         </radialGradient>
       </defs>
       
-      {/* Node circle with gradient */}
       <circle
         r={nodeRadius}
-        fill={`url(#gradient-${node.id})`}
+        fill={`url(#${gradientId})`}
         stroke={nodeColor}
         strokeWidth="2"
         className="node-circle transition-all duration-300 hover:filter hover:brightness-110"
       />
       
-      {/* Node label */}
       <text
         dy=".35em"
         textAnchor="middle"
-        fill="#fff"
-        fontSize="12px"
+        fill="#333"
+        fontSize="10px"
         fontWeight="bold"
         className="select-none pointer-events-none"
-        style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}
+        style={{ textShadow: '0 1px 3px rgba(255,255,255,0.5)' }}
       >
-        {node.label}
+        {label}
       </text>
     </g>
   );

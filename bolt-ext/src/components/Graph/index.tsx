@@ -14,7 +14,6 @@ const Graph: React.FC<GraphProps> = ({ data, width: propWidth, height: propHeigh
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   
-  // Update dimensions when container or props change
   useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
@@ -41,7 +40,6 @@ const Graph: React.FC<GraphProps> = ({ data, width: propWidth, height: propHeigh
     };
   }, [propWidth, propHeight]);
   
-  // Initialize force simulation
   const { nodes, links, handleDrag } = useForceSimulation(
     data,
     dimensions.width,
@@ -51,7 +49,7 @@ const Graph: React.FC<GraphProps> = ({ data, width: propWidth, height: propHeigh
   return (
     <div 
       ref={containerRef} 
-      className="w-full h-full min-h-[500px] bg-gray-50 rounded-lg overflow-hidden shadow-lg"
+      className="w-full h-full min-h-[500px] bg-white/50 rounded-lg overflow-hidden shadow-lg backdrop-blur-sm"
     >
       <svg width={dimensions.width} height={dimensions.height} className="graph-container">
         <g className="links">

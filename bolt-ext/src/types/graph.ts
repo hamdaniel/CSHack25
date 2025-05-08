@@ -4,6 +4,7 @@ export interface NodeData {
   url: string;
   color?: string;
   size?: number;
+  score?: number;
   x?: number;
   y?: number;
   fx?: number | null;
@@ -23,4 +24,8 @@ export interface EdgeData {
 export interface GraphData {
   nodes: NodeData[];
   links: EdgeData[];
+}
+
+export interface ScanData {
+  [key: string]: [string, number][];
 }

@@ -9,14 +9,11 @@ export const useForceSimulation = (graphData: GraphData, width: number, height: 
   const [links, setLinks] = useState<EdgeData[]>([]);
   const simulationRef = useRef<d3Force.Simulation<NodeData, EdgeData> | null>(null);
   
-  // Initialize simulation
   useEffect(() => {
     if (!graphData || !width || !height) return;
     
-    // Deep clone to avoid modifying the original data
     const nodesClone = JSON.parse(JSON.stringify(graphData.nodes)) as NodeData[];
     
-    // Create the simulation with forces
     const simulation = d3Force.forceSimulation<NodeData, EdgeData>(nodesClone)
       .force('link', d3Force.forceLink<NodeData, EdgeData>()
         .id(d => d.id)
@@ -24,12 +21,13 @@ export const useForceSimulation = (graphData: GraphData, width: number, height: 
         .strength(0.1))
       .force('charge', d3Force.forceManyBody().strength(-300))
       .force('center', d3Force.forceCenter(width / 2, height / 2))
-      .force('collision', d3Force.forceCollide().radius(50));
+      .force('collision', d3Force.forceCollide().radius(50))
+      // Add boundary forces
+      .force('x', d3Force.forceX(width / 2).strength(0.1))
+      .force('y', d3Force.forceY(height / 2).strength(0.1));
       
-    // Process links
     const linksClone = JSON.parse(JSON.stringify(graphData.links)) as EdgeData[];
     
-    // Replace source and target id strings with node references
     linksClone.forEach(link => {
       if (typeof link.source === 'string') {
         link.source = nodesClone.find(node => node.id === link.source) as NodeData;
@@ -39,22 +37,24 @@ export const useForceSimulation = (graphData: GraphData, width: number, height: 
       }
     });
     
-    // Set the simulation links
     (simulation.force('link') as d3Force.ForceLink<NodeData, EdgeData>).links(linksClone);
     
-    // Update state on each tick
     simulation.on('tick', () => {
+      // Constrain nodes within boundaries
+      nodesClone.forEach(node => {
+        node.x = Math.max(50, Math.min(width - 50, node.x || 0));
+        node.y = Math.max(50, Math.min(height - 50, node.y || 0));
+      });
+      
       setNodes([...nodesClone]);
       setLinks([...linksClone]);
     });
     
     simulationRef.current = simulation;
     
-    // Initialize nodes and links
     setNodes(nodesClone);
     setLinks(linksClone);
     
-    // Clean up simulation on unmount
     return () => {
       if (simulationRef.current) {
         simulationRef.current.stop();
@@ -62,7 +62,6 @@ export const useForceSimulation = (graphData: GraphData, width: number, height: 
     };
   }, [graphData, width, height]);
   
-  // Handle node dragging
   const handleDrag = (nodeRef: React.RefObject<SVGGElement>, node: NodeData) => {
     if (!nodeRef.current) return;
     
@@ -75,16 +74,16 @@ export const useForceSimulation = (graphData: GraphData, width: number, height: 
         node.fy = node.y;
       })
       .on('drag', (event) => {
-        node.fx = event.x;
-        node.fy = event.y;
+        // Constrain drag within boundaries
+        node.fx = Math.max(50, Math.min(width - 50, event.x));
+        node.fy = Math.max(50, Math.min(height - 50, event.y));
       })
       .on('end', (event) => {
         if (!event.active && simulationRef.current) {
           simulationRef.current.alphaTarget(0);
         }
-        // Keep the node fixed at its new position
-        node.fx = event.x;
-        node.fy = event.y;
+        node.fx = Math.max(50, Math.min(width - 50, event.x));
+        node.fy = Math.max(50, Math.min(height - 50, event.y));
       });
       
     d3Selection.select(nodeRef.current).call(dragBehavior);
