@@ -3,13 +3,18 @@
 	"name": "Text Selection Alert",
 	"description": "Shows a custom popup with the selected text.",
 	"version": "1.0",
-	"permissions": ["activeTab", "storage"],
+	"permissions": [
+	  "activeTab",
+	  "storage",
+	  "contextMenus",
+	  "scripting"
+	],
 	"background": {
 	  "service_worker": "background.js"
 	},
 	"action": {
 	  "default_popup": "popup.html"
-	},	
+	},
 	"content_scripts": [
 	  {
 		"matches": ["<all_urls>"],
