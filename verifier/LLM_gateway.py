@@ -1,7 +1,11 @@
+import os
+
 import requests
 import json
-from API_configs import API_KEY
 from med_dataset import get_top_abstracts
+from dotenv import load_dotenv
+
+API_KEY = os.getenv("API_KEY")
 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
@@ -11,24 +15,46 @@ headers = {
 }
 
 
-def verify(claim, query):
-    context_dict = get_top_abstracts(query)
+def text_to_score(t):
+    if t == "yes":
+        return 4
+    elif t == "py":
+        return 3
+    elif t == "pn":
+        return 2
+    return 1
+
+
+def verify(claim, query, current_url, is_context=False):
+    source, context_dict = get_top_abstracts(query)
+    payload = f"""
+    Analyze the following context and claim. 
+    context: {query if is_context else context_dict.values()}
+    
+    claim: {claim}
+     answer in following format: only write: yes if the context implies the claim,
+     py if the context support the claim to a certain extent or if it gives reasonable doubt to support the claim,
+     pn if the context barely support claim,but there slight correlation and no direct contradiction,
+     no if the context and the claim contradict each-other or are not correlated.
+    """
     payload = {
         "model": "meta-llama/llama-4-maverick:free",
         "messages": [
-            {"role": "user", "content":
-                f"Explain if the following claim is implied from the context. context: {context_dict.values()}. claim: {claim}. answer in following format:In the first line only write: yes, no or partially. The explanation is to be written in newline"}
+            {"role": "user", "content": payload}
+
         ],
         "max_tokens": 100
     }
-
     response = requests.post(API_URL, headers=headers, data=json.dumps(payload))
 
     if response.status_code == 200:
         response_content = response.json()['choices'][0]['message']['content']
-        print(response_content)
+        return {"title": query,
+                "url": {source: {"connected_urls_list": [current_url], "score": text_to_score(response_content)},
+                        current_url: {"connected_urls_list": [source], "score": text_to_score(response_content)}}}
     else:
         print("Error:", response.status_code, response.text)
 
 
-verify("vaccine cause autism", "vaccine cause autism")
+
+verify("vaccines are good", "vaccines are good", "example.com")

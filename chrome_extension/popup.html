@@ -1,21 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text Selection</title>
-    <link rel="stylesheet" href="popup.css">
+  <meta charset="UTF-8">
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.19.0/dist/cytoscape.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape-spread@2.0.0/dist/cytoscape-spread.min.js"></script>
+
+  <link rel="stylesheet" href="popup.css">
+  <script src="popup.js" defer></script>
+  <style>
+    html, body {
+      width: 600px;
+      height: 600px;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+  </style>
 </head>
 <body>
-    <div class="popup-container">
-        <h2>Selected Text</h2>
-        <textarea id="selectedText" readonly></textarea><br>
-        <div class="button-container">
-            <button id="actionButton1" class="action-button">Action 1</button>
-            <button id="actionButton2" class="action-button">Action 2</button>
-        </div>
-    </div>
+  <div class="modal-container">
+    <div class="modal">
+      <div class="modal__details">
+        <h1 class="modal__title">TruthTrail</h1>
+        <p class="modal__description"></p> <!-- Empty initially -->
+      </div>
 
-    <script src="popup.js"></script>
+      <div class="cy"></div>
+
+      <button class="modal__btn">Button &rarr;</button>
+    </div>
+  </div>
+  
+
 </body>
 </html>

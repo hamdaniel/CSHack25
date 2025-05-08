@@ -74,7 +74,7 @@ def get_top_abstracts(query, max_results=3):
     res = {}
     for pmid in pmids:
         res[pmid] = (get_abstract_from_pubmed(pmid))
-    return res
+    return esearch_url, res
 
 # Example usage
 get_top_abstracts("cancer treatment")
