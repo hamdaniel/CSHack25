@@ -17,12 +17,12 @@ headers = {
 
 def text_to_score(t):
     if t == "yes":
-        return 4
+        return 1
     elif t == "py":
-        return 3
+        return 0.75
     elif t == "pn":
-        return 2
-    return 1
+        return 0.25
+    return 0
 
 
 def verify(claim, query, current_url, is_context=False):
@@ -49,12 +49,10 @@ def verify(claim, query, current_url, is_context=False):
 
     if response.status_code == 200:
         response_content = response.json()['choices'][0]['message']['content']
-        return {"title": query,
-                "url": {source: {"connected_urls_list": [current_url], "score": text_to_score(response_content)},
-                        current_url: {"connected_urls_list": [source], "score": text_to_score(response_content)}}}
+        return {source: ([(current_url, text_to_score(response_content))],1),
+                current_url: ([(source, text_to_score(response_content))],1)}
     else:
         print("Error:", response.status_code, response.text)
-
 
 
 verify("vaccines are good", "vaccines are good", "example.com")
