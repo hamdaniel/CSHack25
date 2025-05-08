@@ -17,7 +17,7 @@ def verify(claim, query):
         "model": "meta-llama/llama-4-maverick:free",
         "messages": [
             {"role": "user", "content":
-                f"Explain if the following claim is implied from the context. context: {context_dict.values()}. claim: {claim}. answer in following format:In the first line only write: yes, no or partially. The explanation is to be written in newline"}
+                f"Explain if the following claim can be implied from the context implicitly or explicitly. context: {context_dict.values()}. claim: {claim}. answer in following format: only write: yes, no or partially if the claim is partially correct."}
         ],
         "max_tokens": 100
     }
@@ -31,4 +31,4 @@ def verify(claim, query):
         print("Error:", response.status_code, response.text)
 
 
-verify("vaccine cause autism", "vaccine cause autism")
+verify("vaccines are healthy", "vaccine are healthy")
