@@ -1,103 +1,74 @@
-// Wait for DOM content to load
-document.addEventListener('DOMContentLoaded', function () {
-    // Listen for a context menu or a selected text trigger
-    document.addEventListener('mouseup', function () {
-        const selectedText = window.getSelection().toString().trim();
+	// Wait for DOM content to load
+	document.addEventListener('DOMContentLoaded', function () {
+		// Query the active tab to get its tabId
+		chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+			if (tabs.length > 0) {
+				const tabId = tabs[0].id; // Get the tabId of the active tab
+				
+				// Send a message to the background script indicating that the popup is opened
+				chrome.runtime.sendMessage({ action: 'popupOpened', tabId: tabId }, (response) => {
+					if (chrome.runtime.lastError) {
+					console.error('Error communicating with background:', chrome.runtime.lastError.message);
+					return;
+					}
+				
+					if (response?.success) {
+					console.log('Plotly was successfully injected into the tab!');
+					// You can now proceed to inject your plotting code
+					} else {
+					console.error('Plotly injection failed:', response?.error);
+					}
+				});
+			} else {
+				console.error('No active tab found');
+			}
+		});
 
-        if (selectedText) {
-            // Store the selected text
-            chrome.storage.local.set({ selectedText: selectedText });
+		// Listen for a context menu or a selected text trigger
+		document.addEventListener('mouseup', function () {
+			const selectedText = window.getSelection().toString().trim();
 
-            // Populate the modal with the selected text
-            const modalDescription = document.querySelector('.modal__description');
-            if (modalDescription) {
-                modalDescription.textContent = selectedText || 'No text selected.';
-            }
+			if (selectedText) {
+				// Store the selected text
+				chrome.storage.local.set({ selectedText: selectedText });
 
-            // Call the function to show the graph after text is selected
-            displayGraph();
-        }
-    });
-});
+				// Populate the modal with the selected text
+				const modalDescription = document.querySelector('.modal__description');
+				if (modalDescription) {
+					modalDescription.textContent = selectedText || 'No text selected.';
+				}
+				displayGraph();
+			}
+		});
+	});
 
-// Function to display the graph below the description
-function displayGraph() {
-    // Example graph data
-    const scan_text = {
-        title: "scan_text",
-        url: {
-            "https://example.com": {
-                connected_urls_list: ["https://a.com", "https://b.com"]
-            },
-            "https://a.com": {
-                connected_urls_list: ["https://b.com"]
-            },
-            "https://b.com": {
-                connected_urls_list: []
-            }
-        }
-    };
+	function displayGraph() {
+		fetch(chrome.runtime.getURL('plot.html'))
+			.then(response => {
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+				return response.text();
+			})
+			.then(html => {
+				const plotDiv = document.getElementById('plot');
+				if (plotDiv) {
+					plotDiv.innerHTML = html;
+				} else {
+					console.error('Plot div not found');
+				}
+			})
+			.catch(error => {
+				console.error('Failed to load plot.html:', error);
+			});
 
-    const cy_div = document.querySelector('.cy'); // This is your container for Cytoscape
+	}
 
-    // Build Cytoscape elements
-    const elements = [];
-    for (const url in scan_text.url) {
-        elements.push({ data: { id: url } }); // No label here
-        for (const dest of scan_text.url[url].connected_urls_list) {
-            elements.push({ data: { source: url, target: dest } });
-        }
-    }
-
-    // Initialize Cytoscape with Spread layout
-    const cy = cytoscape({
-        container: cy_div,
-        elements: elements,
-        style: [
-            {
-                selector: 'node',
-                style: {
-                    'background-color': '#0074D9',
-                    'text-valign': 'center',
-                    'text-halign': 'center',
-                    'color': '#fff',
-                    'font-size': 8,  // Smaller font size for nodes
-                    'width': 40,
-                    'height': 40,
-                    'shape': 'round-rectangle', // Make it look like a button
-                    'border-width': 2,
-                    'border-color': '#fff',
-                    'cursor': 'pointer',  // Change cursor to pointer for clickable nodes
-                    'label': '' // No label text displayed
-                }
-            },
-            {
-                selector: 'edge',
-                style: {
-                    'width': 2,
-                    'line-color': '#ccc',
-                    'target-arrow-color': '#ccc',
-                    'target-arrow-shape': 'triangle',
-                    'curve-style': 'bezier'
-                }
-            }
-        ],
-        layout: {
-            name: 'spread', // Use the spread layout instead of cose
-            animate: true,
-            minSeparation: 80 // Optional: adjust to control node spacing
-        }
-    });
-
-    cy.resize(); // Resize the graph to fit the container
-    cy.layout({ name: 'spread' }).run();
-
-    // Add event listener for clicking nodes to open the URL
-    cy.on('tap', 'node', function(event) {
-        const node = event.target;
-        const url = node.data('id');  // Get the URL from the node's ID
-
-        // Open the URL in a new tab
-        window.open(url, '_blank');
-    });
-}
+	document.addEventListener('DOMContentLoaded', function () {
+		const button = document.querySelector('.modal__btn');
+		if (button) {
+			button.addEventListener('click', displayGraph);
+		} else {
+			console.error('Button not found');
+		}
+	});

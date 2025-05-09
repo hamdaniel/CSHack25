@@ -100,7 +100,7 @@ def upload_scan(url, scan_text, scan):
 
 
 
-"""
+
 def main():
     test_url = "http://example.com"
     test_scan_text = "test_scan"
@@ -134,4 +134,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-"""
