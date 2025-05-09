@@ -9,8 +9,83 @@ import json
 import re
 from datetime import datetime
 
+
+# ============ DB ================
+
+import json
+import os
+
+file_name = 'data.json'
+
+"""
+url:{
+	rating: float,
+	num_ratings: int,
+     
+    scans:{
+        scan_text:{
+			url:{
+                  connected_urls_list: [url1, url2, ...]}
+            }
+
+    graph:{
+    
+    url: [(url2, 0.8, )]
+    
+    }    
+
+
+"""
+
+
 load_dotenv()
 app = FastAPI()
+
+
+def read_json(file_path):
+    """Reads and returns JSON data from a file."""
+    if not os.path.exists(file_path):
+        print(f"No file found at {file_path}. Returning empty dictionary.")
+        return {}
+    
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+        print("Data read from JSON:")
+        print(json.dumps(data, indent=4))
+        return data
+
+def write_json(file_path, data):
+    """Writes data to a JSON file."""
+    with open(file_path, 'w') as file:
+        json.dump(data, file, indent=4)
+        print(f"Data written to {file_path}")
+
+@app.get("/overview")
+def get_rating(url):
+    """Returns the rating for a given url."""
+    data = read_json(file_name)
+    if url in data:
+          return data[url].get('rating', None)
+    else:
+        return None
+    
+def add_rating(url, rating):
+    """Adds or updates the rating for a given url."""
+    data = read_json(file_name)
+    
+    if url in data:
+        current_rating = data[url].get('rating', 0)
+        num_ratings = data[url].get('num_ratings', 0)
+
+        new_rating = (current_rating * num_ratings + rating) / (num_ratings + 1)
+        data[url]['rating'] = new_rating
+        data[url]['num_ratings'] = num_ratings + 1
+    else:
+        data[url] = {'rating': rating, 'num_ratings': 1}
+        
+    write_json(file_name, data)
+
+# ================================
 
 # ====== Configs ======
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
@@ -142,7 +217,7 @@ def trace_phrase(phrase: str = Query(...), hops: int = Query(3)):
                     "date": str(date) if date else None,
                     "sentences": influencing_sentences,
                 })
-                graph[parent_url].append((url, score))
+                graph[parent_url].append((url, score, get_rating(url)))
                 graph[url] = []
 
                 # Prioritize high-score sentences as new phrases
