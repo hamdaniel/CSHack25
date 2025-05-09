@@ -43,36 +43,18 @@ export function convertScanDataToGraphData(data: ScanData): GraphData {
   return graphData;
 }
 
-export function scan(text?: string): GraphData {
-  // For now, using sample data. In a real implementation, 
-  // this would analyze the provided text
-  const sampleScanData: ScanData = {
-    'https://example.com': [
-      ['https://google.com', 8.5],
-      ['https://github.com', 3.2],
-      ['https://stackoverflow.com', 6.7]
-    ],
-    'https://google.com': [
-      ['https://youtube.com', 9.1],
-      ['https://github.com', 4.8],
-      ['https://microsoft.com', 7.2]
-    ],
-    'https://github.com': [
-      ['https://stackoverflow.com', 7.3],
-      ['https://npmjs.com', 2.1],
-      ['https://gitlab.com', 5.5]
-    ],
-    'https://stackoverflow.com': [
-      ['https://github.com', 8.9],
-      ['https://medium.com', 5.5],
-      ['https://dev.to', 6.8]
-    ],
-    'https://youtube.com': [
-      ['https://google.com', 9.4],
-      ['https://twitter.com', 1.8],
-      ['https://facebook.com', 4.2]
-    ]
-  };
-
-  return convertScanDataToGraphData(sampleScanData);
+export async function scan(text?: string): Promise<GraphData> {
+  if (!text) return { nodes: [], links: [] };
+  
+  try {
+    const response = await fetch(`http://localhost:8000/search?phrase=${encodeURIComponent(text)}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch data');
+    }
+    const data = await response.json();
+    return convertScanDataToGraphData(data);
+  } catch (error) {
+    console.error('Error fetching graph data:', error);
+    return { nodes: [], links: [] };
+  }
 }

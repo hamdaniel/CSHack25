@@ -15,9 +15,10 @@ const Node: React.FC<NodeProps> = ({ node, handleDrag }) => {
     }
   }, [node, handleDrag]);
   
-  const handleNodeClick = () => {
+  const handleNodeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     if (node.url) {
-      window.open(node.url, '_blank');
+      chrome.tabs.create({ url: node.url, active: false });
     }
   };
   

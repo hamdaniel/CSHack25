@@ -1,5 +1,3 @@
-import { scan } from './data/graphData';
-
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: 'scanText',
@@ -14,5 +12,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
       type: 'SCAN_TEXT',
       text: info.selectionText
     });
+    
+    chrome.action.openPopup();
   }
 });
