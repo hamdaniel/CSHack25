@@ -27,5 +27,14 @@ export interface GraphData {
 }
 
 export interface ScanData {
-  [key: string]: [string, number][];
+  graph: {
+    [key: string]: [string, number, number | null][];
+  };
+  trace: {
+    url: string;
+    from: string;
+    score: number;
+    date: string | null;
+    sentences: string;
+  }[];
 }
