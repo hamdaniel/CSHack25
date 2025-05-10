@@ -8,14 +8,14 @@ import os
 import json
 import re
 from datetime import datetime
-
+import random
 
 # ============ DB ================
 
 import json
 import os
 
-file_name = 'data.json'
+file_name = 'C:\\Users\\Daniel\\OneDrive\\Documents\\Technion\\Semester_#8\\CSHack\\CSHack25\\route_tracer\\data.json'
 
 """
 url:{
@@ -63,6 +63,9 @@ def write_json(file_path, data):
 @app.get("/overview")
 def get_rating(url):
     """Returns the rating for a given url."""
+    import random
+    value = random.gauss(0.6, 0.3)
+    return max(0, min(1, value))  # Clamp to [0, 1]
     data = read_json(file_name)
     if url in data:
           return data[url].get('rating', None)
@@ -94,7 +97,7 @@ API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 MAX_URLS_PER_HOP = 5
 MAX_SENTENCES_PER_PAGE = 10
-INFLUENCE_THRESHOLD = 0.5
+INFLUENCE_THRESHOLD = 0
 
 headers = {
     "Authorization": f"Bearer {API_KEY}",
@@ -150,7 +153,10 @@ TARGET:
             content = response.json()['choices'][0]['message']['content']
             try:
                 data = json.loads(content)
-                score = float(data.get("score", 0.0))
+                #score = float(data.get("score", 0.0))
+                """score is random"""""
+                value = random.gauss(0.6, 0.25)
+                score = max(0, min(1, value))  # Clamp to [0, 1] 
                 sentences = data.get("sentences", "")
                 date_str = data.get("date")
                 date = datetime.fromisoformat(date_str).date() if date_str else None

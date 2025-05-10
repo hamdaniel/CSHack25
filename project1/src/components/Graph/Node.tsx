@@ -15,8 +15,7 @@ const Node: React.FC<NodeProps> = ({ node, handleDrag }) => {
     }
   }, [node, handleDrag]);
   
-  const handleNodeClick = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleNodeClick = () => {
     if (node.url) {
       chrome.tabs.create({ url: node.url, active: false });
     }
@@ -26,13 +25,15 @@ const Node: React.FC<NodeProps> = ({ node, handleDrag }) => {
   const nodeColor = node.color || '#999';
   const gradientId = `gradient-${node.id.replace(/[^a-zA-Z0-9]/g, '-')}`;
   const label = node.label.replace('.com', '');
+  const isClickable = Boolean(node.url);
   
   return (
     <g
       ref={nodeRef}
-      className="graph-node cursor-pointer"
+      className={`graph-node ${isClickable ? 'cursor-pointer' : 'cursor-grab'}`}
       transform={`translate(${node.x || 0},${node.y || 0})`}
       onClick={handleNodeClick}
+      style={{ opacity: isClickable ? 1 : 0.7 }}
     >
       <defs>
         <radialGradient id={gradientId} cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
@@ -49,6 +50,18 @@ const Node: React.FC<NodeProps> = ({ node, handleDrag }) => {
         strokeWidth="2"
         className="node-circle transition-all duration-300 hover:filter hover:brightness-110"
       />
+      
+      {isClickable && (
+        <circle
+          r={nodeRadius + 4}
+          fill="none"
+          stroke={nodeColor}
+          strokeWidth="1"
+          strokeDasharray="4 2"
+          className="animate-[spin_10s_linear_infinite]"
+          opacity={0.3}
+        />
+      )}
       
       <text
         dy=".35em"

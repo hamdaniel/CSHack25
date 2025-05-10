@@ -12,8 +12,9 @@ export function convertScanDataToGraphData(data: ScanData): GraphData {
   const nodes = new Map<string, { score: number; rating: number | null }>();
   const links: { source: string; target: string; value: number }[] = [];
 
-  // Add "Your Quote" as the starting node
-  nodes.set("Your Quote", { score: 1, rating: null });
+  // Add the selected text as the starting node with first two words
+  const firstTwoWords = data.trace[0]?.sentences.split(' ').slice(0, 2).join(' ') || "Selected Text";
+  nodes.set(firstTwoWords, { score: 1, rating: null });
 
   Object.entries(data.graph).forEach(([source, edges]) => {
     if (!nodes.has(source)) {
@@ -31,8 +32,8 @@ export function convertScanDataToGraphData(data: ScanData): GraphData {
   const graphData: GraphData = {
     nodes: Array.from(nodes.entries()).map(([url, { score, rating }]) => ({
       id: url,
-      label: url === "Your Quote" ? "Your Quote" : new URL(url).hostname.replace('www.', ''),
-      url: url === "Your Quote" ? "" : url,
+      label: url === firstTwoWords ? firstTwoWords : new URL(url).hostname.replace('www.', ''),
+      url: url === firstTwoWords ? "" : url,
       color: scoreToColor(score),
       size: rating ? Math.max(30, rating * 10) : 30,
       score
@@ -47,14 +48,27 @@ export async function scan(text?: string): Promise<GraphData> {
   if (!text) return { nodes: [], links: [] };
   
   try {
-    const response = await fetch(`http://localhost:8000/search?phrase=${encodeURIComponent(text)}`);
+    const response = await fetch(`http://localhost:8000/search?phrase=${encodeURIComponent(text)}&hops=4`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Origin': chrome.runtime.getURL(''),
+      },
+      credentials: 'omit',
+      mode: 'cors'
+    });
+    
     if (!response.ok) {
-      throw new Error('Failed to fetch data');
+      const errorText = await response.text();
+      console.error('Server error response:', errorText);
+      throw new Error(`Server responded with ${response.status}: ${errorText}`);
     }
+    
     const data = await response.json();
+    console.log('Server response:', data);
     return convertScanDataToGraphData(data);
   } catch (error) {
     console.error('Error fetching graph data:', error);
-    return { nodes: [], links: [] };
+    throw error;
   }
 }

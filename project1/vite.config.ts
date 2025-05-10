@@ -10,13 +10,11 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       input: {
-        main: 'index.html',
         popup: 'popup.html',
         background: 'src/background.ts'
       },
       output: {
         entryFileNames: (chunkInfo) => {
-          // Ensure background.ts is built as background.js
           if (chunkInfo.name === 'background') {
             return 'background.js';
           }
